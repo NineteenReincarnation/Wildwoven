@@ -407,10 +407,18 @@ public final class GlowhopperEntity extends Animal {
             return false;
         }
 
-        return hasNearbyLushCave(level, pos);
+        // Chunk-generation spawn checks run inside WorldGenRegion, whose cache
+        // is deliberately smaller than the 112-block spread radius. Never
+        // query beyond that generation window: secondary cave spread is
+        // evaluated later during normal ServerLevel spawning instead.
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return false;
+        }
+
+        return hasNearbyLushCave(serverLevel, pos);
     }
 
-    private static boolean hasNearbyLushCave(ServerLevelAccessor level, BlockPos origin) {
+    private static boolean hasNearbyLushCave(ServerLevel level, BlockPos origin) {
         final int horizontalRadius = 112;
         final int horizontalStep = 32;
         final int[] yOffsets = {-24, 0, 24};
@@ -423,6 +431,14 @@ public final class GlowhopperEntity extends Animal {
                     }
 
                     BlockPos sample = origin.offset(x, yOffset, z);
+
+                    // Do not force-load/generate chunks merely to answer a mob
+                    // spawn predicate. The secondary spread becomes eligible
+                    // as surrounding chunks naturally enter the loaded area.
+                    if (!level.hasChunkAt(sample)) {
+                        continue;
+                    }
+
                     if (level.getBiome(sample).is(Biomes.LUSH_CAVES)) {
                         return true;
                     }
