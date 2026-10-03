@@ -488,7 +488,7 @@ public final class GlowhopperEntity extends Animal {
     }
 
     private static boolean hasNearbyLushCave(ServerLevel level, BlockPos origin) {
-        long cacheKey = ChunkPos.asLong(origin.getX() >> 4, origin.getZ() >> 4);
+        long cacheKey = ChunkPos.pack(origin);
         long gameTime = level.getGameTime();
         Map<Long, LushCacheEntry> cache = LUSH_NEARBY_CACHE.computeIfAbsent(
             level,
