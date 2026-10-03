@@ -51,6 +51,7 @@ final class GlowhopperEatGlowBerryGoal extends Goal {
     public void start() {
         this.elapsedTicks = 0;
         this.jumpCooldown = 0;
+        this.glowhopper.setForaging(true);
         this.moveUnderTarget();
     }
 
@@ -96,6 +97,7 @@ final class GlowhopperEatGlowBerryGoal extends Goal {
     public void stop() {
         this.target = null;
         this.elapsedTicks = 0;
+        this.glowhopper.setForaging(false);
     }
 
     private void moveUnderTarget() {
@@ -156,6 +158,7 @@ final class GlowhopperEatGlowBerryGoal extends Goal {
         );
         level.gameEvent(GameEvent.BLOCK_CHANGE, this.target, GameEvent.Context.of(this.glowhopper, eatenState));
         this.glowhopper.refillGlowCharge();
+        this.glowhopper.startEatAnimation();
         this.target = null;
     }
 }

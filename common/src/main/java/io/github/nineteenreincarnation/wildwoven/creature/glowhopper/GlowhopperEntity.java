@@ -47,11 +47,18 @@ public final class GlowhopperEntity extends Animal {
         SynchedEntityData.defineId(GlowhopperEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> DATA_RESTING =
         SynchedEntityData.defineId(GlowhopperEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> DATA_PANICKING =
+        SynchedEntityData.defineId(GlowhopperEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> DATA_FORAGING =
+        SynchedEntityData.defineId(GlowhopperEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> DATA_EATING =
+        SynchedEntityData.defineId(GlowhopperEntity.class, EntityDataSerializers.BOOLEAN);
 
     private int panicTicks;
     private int berrySearchCooldown;
     private int normalHopCooldown;
     private int carriedWaterTicks;
+    private int eatAnimationTicks;
     private @Nullable BlockPos activeLightPos;
     private int activeLightLevel = -1;
 
@@ -84,6 +91,9 @@ public final class GlowhopperEntity extends Animal {
         super.defineSynchedData(builder);
         builder.define(DATA_CHARGE_TICKS, 0);
         builder.define(DATA_RESTING, false);
+        builder.define(DATA_PANICKING, false);
+        builder.define(DATA_FORAGING, false);
+        builder.define(DATA_EATING, false);
     }
 
     @Override
@@ -109,6 +119,13 @@ public final class GlowhopperEntity extends Animal {
 
             if (this.berrySearchCooldown > 0) {
                 this.berrySearchCooldown--;
+            }
+
+            if (this.eatAnimationTicks > 0) {
+                this.eatAnimationTicks--;
+                if (this.eatAnimationTicks == 0) {
+                    this.entityData.set(DATA_EATING, false);
+                }
             }
 
             this.tickNormalHopping();
@@ -156,6 +173,7 @@ public final class GlowhopperEntity extends Animal {
         }
 
         this.panicTicks = 80 + this.getRandom().nextInt(41);
+        this.entityData.set(DATA_PANICKING, true);
         this.setResting(false);
     }
 
@@ -246,6 +264,30 @@ public final class GlowhopperEntity extends Animal {
         return this.entityData.get(DATA_RESTING);
     }
 
+    public boolean isPanicking() {
+        return this.entityData.get(DATA_PANICKING);
+    }
+
+    public boolean isForaging() {
+        return this.entityData.get(DATA_FORAGING);
+    }
+
+    public boolean isEatingBerry() {
+        return this.entityData.get(DATA_EATING);
+    }
+
+    void setForaging(boolean foraging) {
+        this.entityData.set(DATA_FORAGING, foraging);
+        if (foraging) {
+            this.setResting(false);
+        }
+    }
+
+    void startEatAnimation() {
+        this.eatAnimationTicks = 10;
+        this.entityData.set(DATA_EATING, true);
+    }
+
     void setResting(boolean resting) {
         this.entityData.set(DATA_RESTING, resting);
     }
@@ -257,6 +299,10 @@ public final class GlowhopperEntity extends Animal {
     void tickPanic() {
         if (this.panicTicks > 0) {
             this.panicTicks--;
+        }
+
+        if (this.panicTicks <= 0 && this.entityData.get(DATA_PANICKING)) {
+            this.entityData.set(DATA_PANICKING, false);
         }
     }
 
