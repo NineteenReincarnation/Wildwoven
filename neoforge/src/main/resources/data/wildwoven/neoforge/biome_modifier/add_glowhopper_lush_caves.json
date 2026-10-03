@@ -3,7 +3,7 @@
   "biomes": "minecraft:lush_caves",
   "spawners": {
     "type": "wildwoven:glowhopper",
-    "weight": 80,
+    "weight": 72,
     "minCount": 2,
     "maxCount": 4
   }

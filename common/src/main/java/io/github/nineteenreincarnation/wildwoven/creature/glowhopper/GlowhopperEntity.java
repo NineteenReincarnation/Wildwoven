@@ -113,7 +113,10 @@ public final class GlowhopperEntity extends Animal {
 
             this.tickNormalHopping();
             this.tickHeadCarryWater();
-            this.updateWorldLight(serverLevel);
+
+            if (!(this.isPassenger() && this.getVehicle() instanceof Player)) {
+                this.updateWorldLight(serverLevel);
+            }
         }
     }
 
