@@ -15,6 +15,9 @@
     "main": ["io.github.nineteenreincarnation.wildwoven.fabric.WildwovenFabric"],
     "client": ["io.github.nineteenreincarnation.wildwoven.fabric.WildwovenFabricClient"]
   },
+  "mixins": [
+    "wildwoven.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=${fabric_loader_version}",
     "minecraft": "~${minecraft_version}",
