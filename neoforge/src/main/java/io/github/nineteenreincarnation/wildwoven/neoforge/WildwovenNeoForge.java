@@ -14,6 +14,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 public final class WildwovenNeoForge {
     public WildwovenNeoForge(IEventBus modEventBus) {
         WildwovenNeoForgeEntities.register(modEventBus);
+        WildwovenNeoForgeItems.register(modEventBus);
         Wildwoven.initialize();
         modEventBus.addListener(this::registerPayloads);
     }
