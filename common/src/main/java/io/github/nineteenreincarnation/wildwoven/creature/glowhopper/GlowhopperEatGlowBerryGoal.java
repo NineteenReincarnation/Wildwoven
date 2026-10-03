@@ -2,6 +2,7 @@ package io.github.nineteenreincarnation.wildwoven.creature.glowhopper;
 
 import java.util.EnumSet;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -16,6 +17,7 @@ final class GlowhopperEatGlowBerryGoal extends Goal {
 
     private final GlowhopperEntity glowhopper;
     private BlockPos target;
+    private BlockPos standTarget;
     private int elapsedTicks;
     private int jumpCooldown;
 
@@ -34,13 +36,22 @@ final class GlowhopperEatGlowBerryGoal extends Goal {
         }
 
         this.glowhopper.scheduleNextBerrySearch();
-        this.target = this.findNearestBerry();
-        return this.target != null;
+        BerryTarget found = this.findNearestBerry();
+        if (found == null) {
+            this.target = null;
+            this.standTarget = null;
+            return false;
+        }
+
+        this.target = found.berry();
+        this.standTarget = found.stand();
+        return true;
     }
 
     @Override
     public boolean canContinueToUse() {
         return this.target != null
+            && this.standTarget != null
             && this.elapsedTicks < 240
             && !this.glowhopper.isBaby()
             && !this.glowhopper.isPassenger()
@@ -62,7 +73,7 @@ final class GlowhopperEatGlowBerryGoal extends Goal {
             this.jumpCooldown--;
         }
 
-        if (this.target == null) {
+        if (this.target == null || this.standTarget == null) {
             return;
         }
 
@@ -72,8 +83,8 @@ final class GlowhopperEatGlowBerryGoal extends Goal {
             this.target.getZ() + 0.5
         );
 
-        double dx = this.glowhopper.getX() - (this.target.getX() + 0.5);
-        double dz = this.glowhopper.getZ() - (this.target.getZ() + 0.5);
+        double dx = this.glowhopper.getX() - (this.standTarget.getX() + 0.5);
+        double dz = this.glowhopper.getZ() - (this.standTarget.getZ() + 0.5);
         double horizontalDistanceSqr = dx * dx + dz * dz;
 
         if (horizontalDistanceSqr > 1.6) {
@@ -96,24 +107,25 @@ final class GlowhopperEatGlowBerryGoal extends Goal {
     @Override
     public void stop() {
         this.target = null;
+        this.standTarget = null;
         this.elapsedTicks = 0;
         this.glowhopper.setForaging(false);
     }
 
     private void moveUnderTarget() {
-        if (this.target != null) {
+        if (this.standTarget != null) {
             this.glowhopper.getNavigation().moveTo(
-                this.target.getX() + 0.5,
-                this.target.getY() - 1.0,
-                this.target.getZ() + 0.5,
+                this.standTarget.getX() + 0.5,
+                this.standTarget.getY(),
+                this.standTarget.getZ() + 0.5,
                 1.0
             );
         }
     }
 
-    private BlockPos findNearestBerry() {
+    private BerryTarget findNearestBerry() {
         BlockPos origin = this.glowhopper.blockPosition();
-        BlockPos best = null;
+        BerryTarget best = null;
         double bestDistance = Double.MAX_VALUE;
 
         for (int y = 0; y <= VERTICAL_RANGE; y++) {
@@ -124,9 +136,14 @@ final class GlowhopperEatGlowBerryGoal extends Goal {
                         continue;
                     }
 
-                    double distance = candidate.distSqr(origin);
+                    BlockPos stand = this.findStandPosition(candidate);
+                    if (stand == null) {
+                        continue;
+                    }
+
+                    double distance = stand.distSqr(origin);
                     if (distance < bestDistance) {
-                        best = candidate.immutable();
+                        best = new BerryTarget(candidate.immutable(), stand.immutable());
                         bestDistance = distance;
                     }
                 }
@@ -134,6 +151,43 @@ final class GlowhopperEatGlowBerryGoal extends Goal {
         }
 
         return best;
+    }
+
+    private BlockPos findStandPosition(BlockPos berry) {
+        for (int down = 1; down <= VERTICAL_RANGE; down++) {
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    if (Math.abs(x) + Math.abs(z) > 1) {
+                        continue;
+                    }
+
+                    BlockPos stand = berry.offset(x, -down, z);
+                    if (this.canStandAt(stand)) {
+                        return stand;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private boolean canStandAt(BlockPos stand) {
+        BlockState at = this.glowhopper.level().getBlockState(stand);
+        if (!at.getCollisionShape(this.glowhopper.level(), stand).isEmpty()) {
+            return false;
+        }
+
+        BlockPos above = stand.above();
+        if (!this.glowhopper.level().getBlockState(above)
+            .getCollisionShape(this.glowhopper.level(), above)
+            .isEmpty()) {
+            return false;
+        }
+
+        BlockPos floor = stand.below();
+        return this.glowhopper.level().getBlockState(floor)
+            .isFaceSturdy(this.glowhopper.level(), floor, Direction.UP);
     }
 
     private void eatBerry() {
@@ -160,5 +214,9 @@ final class GlowhopperEatGlowBerryGoal extends Goal {
         this.glowhopper.refillGlowCharge();
         this.glowhopper.startEatAnimation();
         this.target = null;
+        this.standTarget = null;
+    }
+
+    private record BerryTarget(BlockPos berry, BlockPos stand) {
     }
 }

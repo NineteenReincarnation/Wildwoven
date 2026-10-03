@@ -1,8 +1,12 @@
 package io.github.nineteenreincarnation.wildwoven.creature.glowhopper;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.WeakHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -48,6 +52,9 @@ public final class GlowhopperEntity extends Animal {
 
     private static final EntityDimensions BABY_DIMENSIONS =
         EntityDimensions.scalable(0.50F, 0.36F).withEyeHeight(0.30F);
+
+    private static final Map<ServerLevel, Map<Long, LushCacheEntry>> LUSH_NEARBY_CACHE =
+        new WeakHashMap<>();
 
     private static final EntityDataAccessor<Integer> DATA_CHARGE_TICKS =
         SynchedEntityData.defineId(GlowhopperEntity.class, EntityDataSerializers.INT);
@@ -393,7 +400,12 @@ public final class GlowhopperEntity extends Animal {
 
     private void updateWorldLight(ServerLevel level) {
         int desiredLight = this.getCurrentLightLevel();
-        BlockPos desiredPos = this.blockPosition();
+        BlockPos desiredPos = this.findLightPosition(level);
+
+        if (desiredPos == null) {
+            this.clearWorldLight();
+            return;
+        }
 
         if (this.activeLightPos != null
             && (!this.activeLightPos.equals(desiredPos) || this.activeLightLevel != desiredLight)) {
@@ -407,6 +419,32 @@ public final class GlowhopperEntity extends Animal {
             this.activeLightPos = desiredPos.immutable();
             this.activeLightLevel = desiredLight;
         }
+    }
+
+    private @Nullable BlockPos findLightPosition(ServerLevel level) {
+        BlockPos center = BlockPos.containing(
+            this.getX(),
+            this.getY() + Math.max(0.2, this.getBbHeight() * 0.5),
+            this.getZ()
+        );
+
+        BlockPos[] candidates = {
+            center,
+            center.above(),
+            center.north(),
+            center.south(),
+            center.east(),
+            center.west(),
+            center.below()
+        };
+
+        for (BlockPos candidate : candidates) {
+            if (GlowhopperLightManager.canUse(level, candidate)) {
+                return candidate.immutable();
+            }
+        }
+
+        return null;
     }
 
     private void clearWorldLight() {
@@ -450,6 +488,35 @@ public final class GlowhopperEntity extends Animal {
     }
 
     private static boolean hasNearbyLushCave(ServerLevel level, BlockPos origin) {
+        long cacheKey = ChunkPos.asLong(origin.getX() >> 4, origin.getZ() >> 4);
+        long gameTime = level.getGameTime();
+        Map<Long, LushCacheEntry> cache = LUSH_NEARBY_CACHE.computeIfAbsent(
+            level,
+            ignored -> new LinkedHashMap<>(256, 0.75F, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<Long, LushCacheEntry> eldest) {
+                    return this.size() > 2048;
+                }
+            }
+        );
+
+        LushCacheEntry cached = cache.get(cacheKey);
+        if (cached != null && cached.expiresAtTick >= gameTime) {
+            return cached.nearLushCave;
+        }
+
+        boolean nearLushCave = scanNearbyLushCave(level, origin);
+        cache.put(
+            cacheKey,
+            new LushCacheEntry(
+                nearLushCave,
+                gameTime + (nearLushCave ? 1200L : 200L)
+            )
+        );
+        return nearLushCave;
+    }
+
+    private static boolean scanNearbyLushCave(ServerLevel level, BlockPos origin) {
         final int horizontalRadius = 112;
         final int horizontalStep = 32;
         final int[] yOffsets = {-24, 0, 24};
@@ -462,10 +529,6 @@ public final class GlowhopperEntity extends Animal {
                     }
 
                     BlockPos sample = origin.offset(x, yOffset, z);
-
-                    // Do not force-load/generate chunks merely to answer a mob
-                    // spawn predicate. The secondary spread becomes eligible
-                    // as surrounding chunks naturally enter the loaded area.
                     if (!level.hasChunkAt(sample)) {
                         continue;
                     }
@@ -478,5 +541,8 @@ public final class GlowhopperEntity extends Animal {
         }
 
         return false;
+    }
+
+    private record LushCacheEntry(boolean nearLushCave, long expiresAtTick) {
     }
 }

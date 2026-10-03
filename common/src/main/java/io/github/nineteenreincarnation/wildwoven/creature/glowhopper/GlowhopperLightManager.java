@@ -16,6 +16,16 @@ final class GlowhopperLightManager {
     private GlowhopperLightManager() {
     }
 
+    static boolean canUse(ServerLevel level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (state.isAir() || state.is(Blocks.WATER)) {
+            return true;
+        }
+
+        Map<BlockPos, LightCell> cells = LEVELS.get(level);
+        return cells != null && cells.containsKey(pos);
+    }
+
     static boolean update(ServerLevel level, BlockPos pos, UUID owner, int brightness) {
         brightness = Math.max(0, Math.min(15, brightness));
         if (brightness == 0) {
