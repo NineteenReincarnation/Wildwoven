@@ -1,6 +1,5 @@
 package io.github.nineteenreincarnation.wildwoven.creature.glowhopper;
 
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -11,18 +10,10 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class GlowhopperLightBlock extends LightBlock {
-    public static final MapCodec<GlowhopperLightBlock> CODEC =
-        simpleCodec(GlowhopperLightBlock::new);
-
     private static final int CLEANUP_DELAY_TICKS = 60;
 
     public GlowhopperLightBlock(BlockBehaviour.Properties properties) {
         super(properties);
-    }
-
-    @Override
-    public MapCodec<GlowhopperLightBlock> codec() {
-        return CODEC;
     }
 
     @Override
