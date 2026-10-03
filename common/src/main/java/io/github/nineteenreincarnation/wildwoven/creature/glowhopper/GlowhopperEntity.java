@@ -36,6 +36,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -605,23 +607,26 @@ public final class GlowhopperEntity extends Animal {
     }
 
     private static boolean scanNearbyLushCave(ServerLevel level, BlockPos origin) {
-        final int horizontalRadius = 112;
-        final int horizontalStep = 32;
-        final int[] yOffsets = {-24, 0, 24};
+        final int chunkRadius = 7;
+        int originChunkX = origin.getX() >> 4;
+        int originChunkZ = origin.getZ() >> 4;
 
-        for (int yOffset : yOffsets) {
-            for (int x = -horizontalRadius; x <= horizontalRadius; x += horizontalStep) {
-                for (int z = -horizontalRadius; z <= horizontalRadius; z += horizontalStep) {
-                    if (x * x + z * z > horizontalRadius * horizontalRadius) {
-                        continue;
-                    }
+        for (int dx = -chunkRadius; dx <= chunkRadius; dx++) {
+            for (int dz = -chunkRadius; dz <= chunkRadius; dz++) {
+                if (dx * dx + dz * dz > chunkRadius * chunkRadius) {
+                    continue;
+                }
 
-                    BlockPos sample = origin.offset(x, yOffset, z);
-                    if (!level.hasChunkAt(sample)) {
-                        continue;
-                    }
+                LevelChunk chunk = level.getChunkSource().getChunkNow(
+                    originChunkX + dx,
+                    originChunkZ + dz
+                );
+                if (chunk == null) {
+                    continue;
+                }
 
-                    if (level.getBiome(sample).is(Biomes.LUSH_CAVES)) {
+                for (LevelChunkSection section : chunk.getSections()) {
+                    if (section.getBiomes().maybeHas(biome -> biome.is(Biomes.LUSH_CAVES))) {
                         return true;
                     }
                 }
