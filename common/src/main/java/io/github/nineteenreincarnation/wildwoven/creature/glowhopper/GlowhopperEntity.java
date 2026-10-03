@@ -170,6 +170,10 @@ public final class GlowhopperEntity extends Animal {
         ItemStack stack = player.getItemInHand(hand);
 
         if (stack.is(Items.GLOW_BERRIES)) {
+            if (this.isPassenger() && this.getVehicle() instanceof Player) {
+                return InteractionResult.PASS;
+            }
+
             if (!this.level().isClientSide()) {
                 this.refillGlowCharge();
                 this.usePlayerItem(player, hand, stack);
