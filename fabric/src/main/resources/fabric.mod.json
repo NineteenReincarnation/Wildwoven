@@ -12,7 +12,8 @@
   "license": "MIT",
   "environment": "*",
   "entrypoints": {
-    "main": ["io.github.nineteenreincarnation.wildwoven.fabric.WildwovenFabric"]
+    "main": ["io.github.nineteenreincarnation.wildwoven.fabric.WildwovenFabric"],
+    "client": ["io.github.nineteenreincarnation.wildwoven.fabric.WildwovenFabricClient"]
   },
   "depends": {
     "fabricloader": ">=${fabric_loader_version}",

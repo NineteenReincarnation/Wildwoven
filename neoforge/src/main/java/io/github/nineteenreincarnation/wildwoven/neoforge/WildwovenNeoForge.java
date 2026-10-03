@@ -7,6 +7,7 @@ import net.neoforged.fml.common.Mod;
 @Mod(Wildwoven.MOD_ID)
 public final class WildwovenNeoForge {
     public WildwovenNeoForge(IEventBus modEventBus) {
+        WildwovenNeoForgeEntities.register(modEventBus);
         Wildwoven.initialize();
     }
 }

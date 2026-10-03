@@ -1,81 +1,146 @@
 # Glowhopper Mechanics
 
-This file records mechanics already confirmed by the creator. Values not confirmed here remain open decisions and are not to be invented during implementation.
+This document records the currently confirmed Glowhopper rules. Implementation details may be tuned for performance or compatibility without changing these gameplay rules.
 
 ## Base properties
 
 - Passive creature.
-- Approximate body length: 0.7 blocks.
-- Approximate height: 0.5 blocks.
+- Approximate adult body length: 0.7 blocks.
+- Approximate adult height: 0.5 blocks.
 - Health: 10 points / 5 hearts.
 - No attack.
+- Can be leashed.
+- Can enter boats and minecarts.
+- Follows a player holding glow berries.
 
 ## Spawning
 
-- Primary spawn: on land in lush caves.
-- Group size: 2–4.
-- Secondary spread: may rarely appear in ordinary underground cave areas when a lush-cave biome can be sampled within 7 chunks / 112 blocks.
-- The exact probability/rate of this secondary spawn is not yet specified.
+- Primary natural spawn: land inside lush caves.
+- Pack size: 2–4.
+- Initial main spawn weight: 80; intended as medium-low density and subject to playtest tuning.
+- Secondary spread: ordinary underground Overworld cave positions may spawn Glowhoppers when a lush-cave biome is sampled within about 7 chunks / 112 blocks.
+- Initial spread weight: 8, approximately 10% of the primary weight.
+- Surface positions outside lush caves are rejected.
+- The 112-block proximity check uses sparse biome samples rather than checking every block so the mechanic does not create excessive spawn-time work.
 
-## Glow charge
+## Glow system
 
-- Food/charge item: glow berries.
-- Eating one glow berry refills charge to 15 minutes.
-- Full charge corresponds to light level 15.
-- Additional berries refill the state rather than stacking extra duration.
-- Light decreases by 1 level after each elapsed minute.
-- After 15 minutes, the Glowhopper is unlit.
-- A wild Glowhopper seeks glow berries growing on cave vines within the currently specified reachable vertical range of about 3 blocks.
-- It moves beneath the berry and jumps to bite/eat it; if it cannot reach the target it may remain below and attempt to reach it.
+Glowhoppers never become completely dark.
 
-## Player interaction
+### Adult
 
-- No taming requirement.
-- Empty hand + sneak + right click on an adult places it on the player's head.
-- The intended interaction uses the same action again to remove it; the exact input handling while the creature is already on the player's head still needs to be made implementation-safe.
-- Only adults can be placed on the player's head.
-- Glow charge continues to decay while carried on the player's head.
-- Feeding an adult a glow berry refills glow charge and enters a 30-second breeding-ready window.
+- Baseline light: 4.
+- Fully charged light: 15.
 
-## Breeding and growth
+### Juvenile
 
-- Two adult Glowhoppers that have each been fed a glow berry may breed if they meet during the 30-second breeding window.
-- A newborn does not begin in the mature adult visual state.
-- Natural growth time: 20 minutes.
-- Feeding a juvenile a glow berry reduces **10% of its remaining growth time** per berry.
-- Feeding a juvenile also starts its own 15-minute glow timer.
-- The juvenile's exact emitted light strength while its lamps are visually immature remains unresolved.
+- Baseline light: 2.
+- Fully charged light: 9.
+- The lower strength matches the visually immature, green lamp structures.
+
+### Charging
+
+- Glow berries are the charge food.
+- One glow berry refills the charge to 15 minutes.
+- Additional berries refill the timer; they do not stack beyond full.
+- During those 15 minutes the emitted light gradually falls from the charged maximum toward the baseline value.
+- Once charge expires, the creature remains at its baseline light indefinitely.
+
+The emitted light is **real Minecraft world light**, not only a client visual. It therefore participates in normal block-light calculations and can affect hostile-mob spawning.
+
+## Wild berry feeding
+
+- Adult Glowhoppers begin periodically looking for glow berries when their current light is 6 or lower.
+- Search area is approximately 8 blocks horizontally and 3 blocks vertically.
+- If none are found, normal life continues and another search is attempted after a random 30–60 seconds.
+- A Glowhopper that reaches a berry eats the berry but leaves the cave vine intact.
+- Wild self-feeding only recharges glow; it does not trigger breeding.
+- Juveniles do not perform the adult high-jump wild-foraging behavior.
+
+## Player feeding, breeding and growth
+
+- Feeding any Glowhopper a glow berry refills its charge.
+- Feeding an eligible adult also enters the normal 30-second breeding-ready state.
+- Two breeding-ready adults can breed using vanilla animal behavior.
+- After breeding, vanilla's 5-minute parent breeding cooldown is used.
+- Natural juvenile growth time is 20 minutes.
+- Feeding a juvenile reduces 10% of its remaining growth time per berry and also refills its glow charge.
 
 ## AI priority
 
-Current intended priority order:
+1. Flee after being hurt.
+2. Breed while breeding-ready.
+3. Follow a tempting player / forage for glow berries when appropriate.
+4. Rest or wander.
 
-1. flee after being hurt;
-2. breeding behavior while breeding-ready;
-3. seek/eat reachable cave-vine glow berries;
-4. idle/wander behavior.
+### Hurt flee
 
-The newly confirmed prone resting pose is part of idle presentation; its trigger frequency and duration are not yet specified.
+- Damage triggers approximately 4–6 seconds of faster hopping.
+- Afterward the creature returns to its normal behavior.
+- If a head-carried Glowhopper itself is damaged, it immediately gets down and enters this flee behavior.
+- Damage to the player alone does not knock the Glowhopper off.
+
+### Rest
+
+- When idle, a Glowhopper may lie prone with all four legs spread outward.
+- A rest lasts roughly 5–15 seconds.
+- Rest attempts are deliberately infrequent rather than constant.
+- The final model/animation may add small idle head movement without changing gameplay.
 
 ## Movement
 
-- Primary locomotion is hopping, broadly comparable to rabbit-like movement.
-- Intended standing jump height is about 2.5 blocks so it can reach cave-vine berries.
+- Normal locomotion uses small rabbit-like hops.
+- The approximately 2.5-block jump is reserved for adult berry-foraging attempts.
+- A self-initiated high foraging jump receives fall-damage grace for that jump.
+- Ordinary large falls still use normal fall damage.
+
+## Player head carry
+
+### Put on
+
+- Adult only.
+- Empty hand + sneak + right click the Glowhopper.
+- No taming is required.
+- A helmet does not block carrying.
+- One player may carry at most one Glowhopper.
+
+### Pose
+
+- The Glowhopper lies prone on the player's head.
+- All four legs spread outward around the head.
+- It must not appear to stand on the player.
+
+### While carried
+
+- Glow charge continues to decay.
+- Its real world light follows the player.
+- The Glowhopper remains attackable.
+- Player damage alone does not remove it.
+- If the Glowhopper is directly damaged, it immediately dismounts and flees.
+- Short water exposure is tolerated.
+- After about 4.5 seconds of continuous water exposure it gets down, representing it recognizing danger.
+- It is intended to follow the player through teleportation, dimension changes and relogging; this must be verified at runtime.
+- For now it cannot be fed while on the player's head; take it down first.
+
+### Take off
+
+- Intended input: empty hand + sneak + right click air.
+- This requires a small client-to-server interaction bridge because vanilla sends no ordinary use-item packet for an empty-hand air click.
+- The network/input bridge is implemented separately from the entity's normal interaction code.
 
 ## Drops
 
-- Death drop: 0–2 glow berries.
-- Experience: 1–3.
+- 0–2 glow berries.
+- 1–3 experience, matching the vanilla animal base range.
 
-## Explicitly unresolved
+## Validation still required
 
-These points must be decided before their implementation is treated as final:
+The rules above are considered decided, but the following need runtime validation rather than further design invention:
 
-- exact secondary-spawn chance/frequency;
-- whether wild berry eating visibly consumes/removes the berry from the cave vine;
-- hurt-flee duration/speed/distance;
-- prone-rest trigger conditions, frequency and duration;
-- safe and intuitive removal input while carried on the player's head;
-- carried-state rules for damage, death, water, sleeping, logout and dimension travel;
-- whether the carried Glowhopper keeps a normal hurtbox/collision target;
-- juvenile emitted brightness while its lamp structures are immature.
+- actual lush-cave and nearby-cave spawn density;
+- cost of the 112-block biome proximity sampling;
+- high-jump height and landing behavior;
+- real-light cleanup across chunk unloads, crashes and overlapping Glowhoppers;
+- passenger persistence across logout and dimension travel;
+- head hitbox and final visual placement;
+- resource-pack/player-animation compatibility after the real model is added.

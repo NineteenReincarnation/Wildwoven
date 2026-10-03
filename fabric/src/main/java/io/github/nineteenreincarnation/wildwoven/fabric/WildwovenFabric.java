@@ -6,6 +6,7 @@ import net.fabricmc.api.ModInitializer;
 public final class WildwovenFabric implements ModInitializer {
     @Override
     public void onInitialize() {
+        WildwovenFabricEntities.register();
         Wildwoven.initialize();
     }
 }
