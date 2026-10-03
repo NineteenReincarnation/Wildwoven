@@ -494,7 +494,9 @@ public final class GlowhopperEntity extends Animal {
         }
 
         if (this.activeLightPos != null
-            && (!this.activeLightPos.equals(desiredPos) || this.activeLightLevel != desiredLight)) {
+            && (!this.activeLightPos.equals(desiredPos)
+                || this.activeLightLevel != desiredLight
+                || !GlowhopperLightManager.isManagedLightAt(level, this.activeLightPos))) {
             GlowhopperLightManager.remove(level, this.activeLightPos, this.getUUID());
             this.activeLightPos = null;
             this.activeLightLevel = -1;

@@ -32,7 +32,7 @@ public abstract class ServerPlayerMixin {
         CallbackInfoReturnable<ServerPlayer> cir
     ) {
         ServerPlayer player = (ServerPlayer)(Object)this;
-        if (transition.newLevel().dimension() == player.level().dimension()) {
+        if (transition.newLevel().dimension().equals(player.level().dimension())) {
             this.wildwoven$dimensionCarriedGlowhopper = null;
             return;
         }

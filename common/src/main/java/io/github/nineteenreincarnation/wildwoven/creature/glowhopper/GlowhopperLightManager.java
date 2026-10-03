@@ -22,8 +22,11 @@ final class GlowhopperLightManager {
             return true;
         }
 
-        Map<BlockPos, LightCell> cells = LEVELS.get(level);
-        return cells != null && cells.containsKey(pos);
+        return false;
+    }
+
+    static boolean isManagedLightAt(ServerLevel level, BlockPos pos) {
+        return level.getBlockState(pos).is(GlowhopperLightModule.block());
     }
 
     static boolean update(ServerLevel level, BlockPos pos, UUID owner, int brightness) {
