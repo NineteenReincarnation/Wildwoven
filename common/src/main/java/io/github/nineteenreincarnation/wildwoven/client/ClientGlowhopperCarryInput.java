@@ -23,8 +23,7 @@ public final class ClientGlowhopperCarryInput {
         }
 
         if (!minecraft.player.isSecondaryUseActive()
-            || !minecraft.player.getMainHandItem().isEmpty()
-            || !minecraft.player.getOffhandItem().isEmpty()) {
+            || !minecraft.player.getMainHandItem().isEmpty()) {
             return false;
         }
 

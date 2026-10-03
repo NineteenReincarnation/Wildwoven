@@ -10,12 +10,15 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.AgeableMob;
+import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.BreedGoal;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.TemptGoal;
@@ -42,6 +45,9 @@ public final class GlowhopperEntity extends Animal {
     public static final int BABY_BASE_LIGHT = 2;
     public static final int BABY_MAX_LIGHT = 9;
     public static final int BERRY_SEARCH_LIGHT_THRESHOLD = 6;
+
+    private static final EntityDimensions BABY_DIMENSIONS =
+        EntityDimensions.scalable(0.50F, 0.36F).withEyeHeight(0.30F);
 
     private static final EntityDataAccessor<Integer> DATA_CHARGE_TICKS =
         SynchedEntityData.defineId(GlowhopperEntity.class, EntityDataSerializers.INT);
@@ -121,6 +127,8 @@ public final class GlowhopperEntity extends Animal {
                 this.berrySearchCooldown--;
             }
 
+            this.tickPanic();
+
             if (this.eatAnimationTicks > 0) {
                 this.eatAnimationTicks--;
                 if (this.eatAnimationTicks == 0) {
@@ -140,6 +148,8 @@ public final class GlowhopperEntity extends Animal {
     @Override
     public void rideTick() {
         if (this.getVehicle() instanceof Player player) {
+            this.setCarryGoalControls(false);
+            this.getNavigation().stop();
             this.setDeltaMovement(Vec3.ZERO);
             this.tick();
 
@@ -156,6 +166,17 @@ public final class GlowhopperEntity extends Animal {
         } else {
             super.rideTick();
         }
+    }
+
+    @Override
+    public void stopRiding() {
+        super.stopRiding();
+        this.setCarryGoalControls(true);
+    }
+
+    @Override
+    protected EntityDimensions getDefaultDimensions(Pose pose) {
+        return this.isBaby() ? BABY_DIMENSIONS : super.getDefaultDimensions(pose);
     }
 
     @Override
@@ -211,6 +232,7 @@ public final class GlowhopperEntity extends Animal {
         }
 
         if (!this.isBaby()
+            && hand == InteractionHand.MAIN_HAND
             && stack.isEmpty()
             && player.isSecondaryUseActive()
             && !this.isPassenger()
@@ -326,7 +348,7 @@ public final class GlowhopperEntity extends Animal {
     }
 
     private void tickNormalHopping() {
-        if (this.isPassenger() || this.isResting() || this.getPanicTicks() > 0 || !this.onGround()) {
+        if (this.isPassenger() || this.isResting() || !this.onGround()) {
             return;
         }
 
@@ -337,10 +359,19 @@ public final class GlowhopperEntity extends Animal {
 
         if (!this.getNavigation().isDone() && this.getDeltaMovement().horizontalDistanceSqr() > 0.0004) {
             Vec3 movement = this.getDeltaMovement();
-            this.setDeltaMovement(movement.x, 0.28, movement.z);
+            boolean panic = this.isPanicking();
+            this.setDeltaMovement(movement.x, panic ? 0.34 : 0.28, movement.z);
             this.needsSync = true;
-            this.normalHopCooldown = 7 + this.getRandom().nextInt(5);
+            this.normalHopCooldown = panic
+                ? 2 + this.getRandom().nextInt(3)
+                : 7 + this.getRandom().nextInt(5);
         }
+    }
+
+    private void setCarryGoalControls(boolean enabled) {
+        this.goalSelector.setControlFlag(Goal.Flag.MOVE, enabled);
+        this.goalSelector.setControlFlag(Goal.Flag.LOOK, enabled);
+        this.goalSelector.setControlFlag(Goal.Flag.JUMP, enabled);
     }
 
     private void tickHeadCarryWater() {

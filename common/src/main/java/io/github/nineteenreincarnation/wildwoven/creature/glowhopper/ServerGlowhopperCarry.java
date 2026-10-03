@@ -8,8 +8,7 @@ public final class ServerGlowhopperCarry {
 
     public static void removeFromHead(ServerPlayer player) {
         if (!player.isShiftKeyDown()
-            || !player.getMainHandItem().isEmpty()
-            || !player.getOffhandItem().isEmpty()) {
+            || !player.getMainHandItem().isEmpty()) {
             return;
         }
 

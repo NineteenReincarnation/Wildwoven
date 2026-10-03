@@ -16,12 +16,6 @@ final class GlowhopperPanicGoal extends PanicGoal {
     }
 
     @Override
-    public void tick() {
-        super.tick();
-        this.glowhopper.tickPanic();
-    }
-
-    @Override
     public boolean canContinueToUse() {
         return this.glowhopper.getPanicTicks() > 0 && super.canContinueToUse();
     }
