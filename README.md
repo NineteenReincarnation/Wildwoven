@@ -27,7 +27,7 @@ Wildwoven prioritizes:
 
 | Creature | ID | Status |
 | --- | --- | --- |
-| Glowhopper / 灯莓兽 | `wildwoven:glowhopper` | Design confirmed in part; implementation pending remaining mechanic decisions |
+| Glowhopper / 灯莓兽 | `wildwoven:glowhopper` | Core mechanics implemented; model, textures and runtime playtesting pending |
 
 ## Layout
 
