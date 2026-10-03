@@ -13,6 +13,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 @Mod(Wildwoven.MOD_ID)
 public final class WildwovenNeoForge {
     public WildwovenNeoForge(IEventBus modEventBus) {
+        WildwovenNeoForgeBlocks.register(modEventBus);
         WildwovenNeoForgeEntities.register(modEventBus);
         WildwovenNeoForgeItems.register(modEventBus);
         WildwovenNeoForgeCreativeTabs.register(modEventBus);

@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 public final class WildwovenFabric implements ModInitializer {
     @Override
     public void onInitialize() {
+        WildwovenFabricBlocks.register();
         WildwovenFabricEntities.register();
         WildwovenFabricItems.register();
         WildwovenFabricCreativeTabs.register();
