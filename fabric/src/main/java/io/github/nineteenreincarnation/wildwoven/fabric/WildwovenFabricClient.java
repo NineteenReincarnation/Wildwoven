@@ -6,7 +6,7 @@ import io.github.nineteenreincarnation.wildwoven.client.glowhopper.GlowhopperMod
 import io.github.nineteenreincarnation.wildwoven.client.glowhopper.GlowhopperRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 
 public final class WildwovenFabricClient implements ClientModInitializer {
@@ -14,11 +14,11 @@ public final class WildwovenFabricClient implements ClientModInitializer {
     public void onInitializeClient() {
         ClientGlowhopperCarryInput.installSender(ClientPlayNetworking::send);
 
-        EntityModelLayerRegistry.registerModelLayer(
+        ModelLayerRegistry.registerModelLayer(
             GlowhopperModelLayers.ADULT,
             GlowhopperModel::createAdultLayer
         );
-        EntityModelLayerRegistry.registerModelLayer(
+        ModelLayerRegistry.registerModelLayer(
             GlowhopperModelLayers.BABY,
             GlowhopperModel::createBabyLayer
         );
