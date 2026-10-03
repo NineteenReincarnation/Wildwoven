@@ -12,6 +12,7 @@ public final class WildwovenFabric implements ModInitializer {
     public void onInitialize() {
         WildwovenFabricEntities.register();
         WildwovenFabricItems.register();
+        WildwovenFabricCreativeTabs.register();
         Wildwoven.initialize();
 
         PayloadTypeRegistry.serverboundPlay().register(

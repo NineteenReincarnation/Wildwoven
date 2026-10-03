@@ -1,4 +1,5 @@
 {
   "entity.wildwoven.glowhopper": "Glowhopper",
-  "item.wildwoven.glowhopper_spawn_egg": "Glowhopper Spawn Egg"
+  "item.wildwoven.glowhopper_spawn_egg": "Glowhopper Spawn Egg",
+  "itemGroup.wildwoven.main": "Wildwoven"
 }

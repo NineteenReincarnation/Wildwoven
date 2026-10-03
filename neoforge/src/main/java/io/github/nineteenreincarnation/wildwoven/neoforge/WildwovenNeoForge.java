@@ -15,6 +15,7 @@ public final class WildwovenNeoForge {
     public WildwovenNeoForge(IEventBus modEventBus) {
         WildwovenNeoForgeEntities.register(modEventBus);
         WildwovenNeoForgeItems.register(modEventBus);
+        WildwovenNeoForgeCreativeTabs.register(modEventBus);
         Wildwoven.initialize();
         modEventBus.addListener(this::registerPayloads);
     }
