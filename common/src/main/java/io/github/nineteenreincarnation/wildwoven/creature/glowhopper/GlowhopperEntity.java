@@ -166,7 +166,7 @@ public final class GlowhopperEntity extends Animal {
     }
 
     @Override
-    protected InteractionResult mobInteract(Player player, InteractionHand hand) {
+    public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
         if (stack.is(Items.GLOW_BERRIES)) {
@@ -269,7 +269,7 @@ public final class GlowhopperEntity extends Animal {
         Vec3 movement = this.getDeltaMovement();
         this.setDeltaMovement(movement.x, 0.68, movement.z);
         this.setIgnoreFallDamageFromCurrentImpulse(true, this.position());
-        this.hasImpulse = true;
+        this.needsSync = true;
     }
 
     private void tickNormalHopping() {
@@ -285,7 +285,7 @@ public final class GlowhopperEntity extends Animal {
         if (!this.getNavigation().isDone() && this.getDeltaMovement().horizontalDistanceSqr() > 0.0004) {
             Vec3 movement = this.getDeltaMovement();
             this.setDeltaMovement(movement.x, 0.28, movement.z);
-            this.hasImpulse = true;
+            this.needsSync = true;
             this.normalHopCooldown = 7 + this.getRandom().nextInt(5);
         }
     }
