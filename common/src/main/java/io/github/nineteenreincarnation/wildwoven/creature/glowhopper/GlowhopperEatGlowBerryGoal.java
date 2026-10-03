@@ -114,7 +114,7 @@ final class GlowhopperEatGlowBerryGoal extends Goal {
         BlockPos best = null;
         double bestDistance = Double.MAX_VALUE;
 
-        for (int y = -VERTICAL_RANGE; y <= VERTICAL_RANGE; y++) {
+        for (int y = 0; y <= VERTICAL_RANGE; y++) {
             for (int x = -HORIZONTAL_RANGE; x <= HORIZONTAL_RANGE; x++) {
                 for (int z = -HORIZONTAL_RANGE; z <= HORIZONTAL_RANGE; z++) {
                     BlockPos candidate = origin.offset(x, y, z);

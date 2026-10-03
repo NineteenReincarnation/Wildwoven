@@ -184,7 +184,7 @@ public final class GlowhopperEntity extends Animal {
                 if (this.isBaby()) {
                     int seconds = AgeableMob.getSpeedUpSecondsWhenFeeding(-this.getAge());
                     this.ageUp(seconds, true);
-                } else if (this.getAge() == 0 && this.canFallInLove()) {
+                } else if (this.getAge() == 0) {
                     this.setInLove(player);
                 }
             }
