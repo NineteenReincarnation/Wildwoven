@@ -36,7 +36,7 @@ Glowhoppers never become completely dark.
 
 - Baseline light: 2.
 - Fully charged light: 9.
-- The lower strength matches the visually immature, green lamp structures.
+- The lower strength matches the smaller yellow/gold juvenile lamps in the reference.
 
 ### Charging
 
@@ -75,7 +75,7 @@ The emitted light is **real Minecraft world light**, not only a client visual. I
 
 ### Hurt flee
 
-- Damage triggers approximately 4–6 seconds of faster hopping.
+- Damage triggers approximately 4–6 seconds of faster ground movement.
 - Afterward the creature returns to its normal behavior.
 - If a head-carried Glowhopper itself is damaged, it immediately gets down and enters this flee behavior.
 - Damage to the player alone does not knock the Glowhopper off.
@@ -89,7 +89,7 @@ The emitted light is **real Minecraft world light**, not only a client visual. I
 
 ## Movement
 
-- Normal locomotion uses small rabbit-like hops.
+- Normal locomotion uses quadruped walking, as requested by the creator; vanilla navigation still jumps over obstacles.
 - The approximately 2.5-block jump is reserved for adult berry-foraging attempts.
 - A self-initiated high foraging jump receives fall-damage grace for that jump.
 - Ordinary large falls still use normal fall damage.

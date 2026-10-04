@@ -28,6 +28,7 @@ public final class GlowhopperRenderer
             new GlowhopperModel(context.bakeLayer(GlowhopperModelLayers.BABY)),
             0.25F
         );
+        this.addLayer(new GlowhopperGlowLayer(this));
     }
 
     @Override

@@ -1,59 +1,42 @@
 # Glowhopper / 灯莓兽
 
-## Identity
+## Visual authority
 
-- Type: passive creature.
-- Intended biome identity: lush caves and nearby cave systems.
-- Overall design target: simple Minecraft-vanilla creature rather than a detailed voxel sculpture.
-- Approximate adult size currently specified as about **0.7 blocks long and 0.5 blocks high**.
-- Health: **10 points / 5 hearts**.
-- Attack: none.
+The creator's three-view sheet and enlarged adult front view are the visual reference.
+The current implementation follows their protruding cuboid moss clumps, tan face,
+brown-green body, thick short square legs, stepped hooked stalk and framed lanterns.
+Earlier placeholder instructions about flat regions, three buds, or green juvenile
+buds do not describe the approved reference and have been superseded.
 
-## Visual rules
+## Adult geometry and color
 
-### Adult
+- A broad cuboid body with an inset tan face; no separate projecting snout.
+- A flat moss canopy with separately modeled forehead, side and rear clumps.
+- Forehead clumps have distinct depths and hanging edges; texture cannot replace them.
+- Exactly two deep brown square eyes, on the front face only.
+- Four short, thick cuboid legs, with lighter brown upper halves and darker lower halves.
+- One stalk made of three staggered green cuboids, with a hanging tip lantern.
+- Two forward side lanterns and two rear corner lanterns, not buds on top of the back.
+- Mature lanterns have saturated orange edges and a pale yellow central band.
+- Moss has restrained patches and separate light/mid/dark olive greens.
+- Approximate 0.7-block body length. The ornamental stalk extends above the body.
 
-- Blocky, low-detail silhouette.
-- Four legs are simple small cuboids; no detailed feet or paw sculpting.
-- Texture uses a restrained number of flat color regions rather than noisy voxel-by-voxel color variation.
-- Exactly one pair of eyes:
-  - front view shows two eyes;
-  - side view shows only the eye on that visible side.
-- Mature lamp/berry structures use the adult glow-berry visual language.
+## Juvenile
 
-### Juvenile
+- Separate mesh, about 70% adult width/length with shorter legs and fewer forehead clumps.
+- Brighter moss and smaller gold/yellow lamps instead of the adult orange lamp palette.
+- Retains one hooked tip lamp and four corner lamps, as depicted in the three-view sheet.
+- Gameplay light remains the previously confirmed 2 baseline / 9 maximum.
 
-The juvenile follows vanilla baby-mob design language instead of being a uniformly scaled adult.
+## Poses
 
-- cuter proportions;
-- larger-looking head relative to the body;
-- shorter body and legs;
-- fewer visual details;
-- fewer lamp/berry structures;
-- lamp/berry structures look immature and remain greenish, closer to the body's green palette rather than mature orange-yellow berries.
-
-Whether the juvenile's immature lamps also change gameplay light output remains an unresolved mechanic and is not assumed here.
-
-### Resting pose
-
-Glowhopper has a prone resting/idle pose. Its body lies low and all four legs extend outward around the body.
-
-### Player head pose
-
-When carried on a player's head, Glowhopper uses the same basic prone language:
-
-- belly/body rests over the top of the player's head;
-- all four legs extend outward around the head;
-- it must not appear to stand upright on the player.
-
-The model and animation structure should be authored so this pose can be represented cleanly without distorting the normal standing pose.
+Ground rest lowers the body and lays all four legs nearly flat around it. When carried,
+the belly sits at the player's head surface and the legs remain spread. Walking uses
+alternating diagonal pairs; jumping extends front and rear legs in opposing directions.
 
 ## Asset boundary
 
-Editable source models and references belong under:
-
-`art/creatures/glowhopper/`
-
-Runtime textures belong under:
-
-`common/src/main/resources/assets/wildwoven/textures/entity/glowhopper/`
+`art/creatures/glowhopper/build_assets.py` is the geometry/UV/palette source. It generates
+both runtime Java layers, their four texture atlases, JSON meshes and editable adult/baby
+Blockbench projects. Java procedural animation lives in `GlowhopperModel.java`.
+Textures belong in `common/src/main/resources/assets/wildwoven/textures/entity/glowhopper/`.

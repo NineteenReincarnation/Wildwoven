@@ -35,3 +35,6 @@ out/
 # Minecraft dev runtime
 run/
 runs/
+
+# Asset tooling
+__pycache__/

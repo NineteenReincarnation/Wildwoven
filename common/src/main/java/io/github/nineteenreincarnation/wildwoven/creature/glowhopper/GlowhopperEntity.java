@@ -20,8 +20,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.control.JumpControl;
-import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.goal.BreedGoal;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -38,7 +36,6 @@ import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
-import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
@@ -74,8 +71,6 @@ public final class GlowhopperEntity extends Animal {
 
     private int panicTicks;
     private int berrySearchCooldown;
-    private int jumpDelayTicks;
-    private boolean wasOnGround;
     private int carriedWaterTicks;
     private int eatAnimationTicks;
     private @Nullable BlockPos activeLightPos;
@@ -83,9 +78,7 @@ public final class GlowhopperEntity extends Animal {
 
     public GlowhopperEntity(EntityType<? extends GlowhopperEntity> type, net.minecraft.world.level.Level level) {
         super(type, level);
-        this.jumpControl = new GlowhopperJumpControl(this);
-        this.moveControl = new GlowhopperMoveControl(this);
-        this.setSpeedModifier(0.0);
+        // Vanilla ground navigation walks continuously and jumps only to clear obstacles.
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -359,108 +352,16 @@ public final class GlowhopperEntity extends Animal {
         Vec3 movement = this.getDeltaMovement();
         this.setDeltaMovement(movement.x, 0.68, movement.z);
         this.setIgnoreFallDamageFromCurrentImpulse(true, this.position());
-        this.jumpDelayTicks = 12;
         this.needsSync = true;
-    }
-
-    void setSpeedModifier(double speed) {
-        this.getNavigation().setSpeedModifier(speed);
-        this.moveControl.setWantedPosition(
-            this.moveControl.getWantedX(),
-            this.moveControl.getWantedY(),
-            this.moveControl.getWantedZ(),
-            speed
-        );
-    }
-
-    private void startJumping() {
-        this.setJumping(true);
-    }
-
-    private void facePoint(double x, double z) {
-        this.setYRot((float)(Mth.atan2(z - this.getZ(), x - this.getX()) * 180.0F / Math.PI) - 90.0F);
-    }
-
-    private void setLandingDelay() {
-        this.jumpDelayTicks = this.isPanicking() ? 3 : 10;
-        ((GlowhopperJumpControl)this.jumpControl).setCanJump(false);
-    }
-
-    private void enableJumpControl() {
-        ((GlowhopperJumpControl)this.jumpControl).setCanJump(true);
-    }
-
-    @Override
-    protected float getJumpPower() {
-        float baseJumpPower = this.isPanicking() ? 0.34F : 0.28F;
-        Path path = this.getNavigation().getPath();
-        if (path != null && !path.isDone()) {
-            Vec3 next = path.getNextEntityPos(this);
-            if (next.y > this.getY() + 0.5) {
-                baseJumpPower = Math.max(baseJumpPower, 0.44F);
-            }
-        }
-
-        if (this.horizontalCollision || this.jumping && this.moveControl.getWantedY() > this.getY() + 0.5) {
-            baseJumpPower = Math.max(baseJumpPower, 0.44F);
-        }
-
-        return super.getJumpPower(baseJumpPower / 0.42F);
-    }
-
-    @Override
-    public void jumpFromGround() {
-        super.jumpFromGround();
-
-        if (this.moveControl.getSpeedModifier() > 0.0
-            && this.getDeltaMovement().horizontalDistanceSqr() < 0.01) {
-            this.moveRelative(0.08F, new Vec3(0.0, 0.0, 1.0));
-        }
     }
 
     @Override
     protected void customServerAiStep(ServerLevel level) {
         super.customServerAiStep(level);
-
-        if (this.jumpDelayTicks > 0) {
-            this.jumpDelayTicks--;
-        }
-
         if (this.isPassenger() || this.isResting()) {
             this.setJumping(false);
-            this.wasOnGround = this.onGround();
-            return;
+            this.getNavigation().stop();
         }
-
-        if (this.onGround()) {
-            if (!this.wasOnGround) {
-                this.setJumping(false);
-                this.setLandingDelay();
-            }
-
-            GlowhopperJumpControl control = (GlowhopperJumpControl)this.jumpControl;
-            if (!control.wantJump()) {
-                if (this.moveControl.hasWanted() && this.jumpDelayTicks == 0) {
-                    Path path = this.getNavigation().getPath();
-                    Vec3 target = new Vec3(
-                        this.moveControl.getWantedX(),
-                        this.moveControl.getWantedY(),
-                        this.moveControl.getWantedZ()
-                    );
-
-                    if (path != null && !path.isDone()) {
-                        target = path.getNextEntityPos(this);
-                    }
-
-                    this.facePoint(target.x, target.z);
-                    this.startJumping();
-                }
-            } else if (!control.canJump()) {
-                this.enableJumpControl();
-            }
-        }
-
-        this.wasOnGround = this.onGround();
     }
 
     private void setCarryGoalControls(boolean enabled) {
@@ -634,68 +535,6 @@ public final class GlowhopperEntity extends Animal {
         }
 
         return false;
-    }
-
-    private static final class GlowhopperJumpControl extends JumpControl {
-        private final GlowhopperEntity glowhopper;
-        private boolean canJump;
-
-        private GlowhopperJumpControl(GlowhopperEntity glowhopper) {
-            super(glowhopper);
-            this.glowhopper = glowhopper;
-        }
-
-        boolean wantJump() {
-            return this.jump;
-        }
-
-        boolean canJump() {
-            return this.canJump;
-        }
-
-        void setCanJump(boolean canJump) {
-            this.canJump = canJump;
-        }
-
-        @Override
-        public void tick() {
-            if (this.jump) {
-                this.glowhopper.startJumping();
-                this.jump = false;
-            }
-        }
-    }
-
-    private static final class GlowhopperMoveControl extends MoveControl<GlowhopperEntity> {
-        private double nextJumpSpeed;
-
-        private GlowhopperMoveControl(GlowhopperEntity glowhopper) {
-            super(glowhopper);
-        }
-
-        @Override
-        public void tick() {
-            GlowhopperJumpControl jump = (GlowhopperJumpControl)this.mob.jumpControl;
-            if (this.mob.onGround() && !this.mob.jumping && !jump.wantJump()) {
-                this.mob.setSpeedModifier(0.0);
-            } else if (this.hasWanted() || this.operation == Operation.JUMPING) {
-                this.mob.setSpeedModifier(this.nextJumpSpeed);
-            }
-
-            super.tick();
-        }
-
-        @Override
-        public void setWantedPosition(double x, double y, double z, double speedModifier) {
-            if (this.mob.isInWater()) {
-                speedModifier = 1.5;
-            }
-
-            super.setWantedPosition(x, y, z, speedModifier);
-            if (speedModifier > 0.0) {
-                this.nextJumpSpeed = speedModifier;
-            }
-        }
     }
 
     private record LushCacheEntry(boolean nearLushCave, long expiresAtTick) {
