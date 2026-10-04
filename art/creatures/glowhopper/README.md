@@ -9,6 +9,8 @@ The creator's design sheet and adult close-up are the reference for this reconst
 - `previews/adult_detail.png`: enlarged adult at the reference front-view angle.
 - `previews/model_sheet.png`: adult/baby orthographic views and action poses.
 - `previews/walk.gif`: adult/baby procedural walking preview.
+- `previews/angle_fix_comparison.png`: reproduction of the former face/shell intersection,
+  compared with the rigid-face fix at an elevated camera angle (offline rendering).
 
 Use Python 3 with Pillow and NumPy:
 

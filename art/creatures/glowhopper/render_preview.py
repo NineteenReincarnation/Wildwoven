@@ -13,7 +13,8 @@ def rotation(x=0,y=0,z=0):
     return np.array([[cz,-sz,0],[sz,cz,0],[0,0,1]]) @ np.array([[cy,0,sy],[0,1,0],[-sy,0,cy]]) @ np.array([[1,0,0],[0,cx,-sx],[0,sx,cx]])
 
 
-def render(baby=False, view=(0.65,-0.35,-1.6), pose='idle', phase=0, size=(320,280), scale=14):
+def render(baby=False, view=(0.65,-0.35,-1.6), pose='idle', phase=0, size=(320,280), scale=14,
+           head_rotation=(0,0,0), model_yaw=0, body_pitch=0):
     parts = json.loads((HERE / ('baby_mesh.json' if baby else 'adult_mesh.json')).read_text())
     texture = Image.open(TEXTURES / ('glowhopper_baby.png' if baby else 'glowhopper.png')).convert('RGB')
     eye = np.array(view, dtype=float)
@@ -30,9 +31,15 @@ def render(baby=False, view=(0.65,-0.35,-1.6), pose='idle', phase=0, size=(320,2
         name=part['name']
         pivot = np.array(part['pivot'],dtype=float)
         rot = np.eye(3)
+        if name=='head':
+            rot=rotation(*head_rotation)
+        if name=='body':
+            rot=rotation(x=body_pitch)
         if name=='body' and pose=='walk':
             pivot[1] -= (1-math.cos(phase*2))*0.09
-            rot=rotation(z=math.sin(phase)*0.025)
+            rot=rotation(x=body_pitch,z=math.sin(phase)*0.025)
+        if name=='body' and pose=='eat':
+            rot=rotation(x=body_pitch+0.06+math.sin(phase*1.8)*0.03)
         if pose in ('rest','carry'):
             carried=pose=='carry'
             if name=='body':
@@ -59,7 +66,8 @@ def render(baby=False, view=(0.65,-0.35,-1.6), pose='idle', phase=0, size=(320,2
             pr,pt=transforms[part['parent']]
             transforms[name]=(pr@rot, pt+pr@pivot)
         else:
-            transforms[name]=(rot,pivot)
+            global_rotation=rotation(y=model_yaw)
+            transforms[name]=(global_rotation@rot,global_rotation@pivot)
         r,t=transforms[name]
         for cube in part['cubes']:
             x,y,z=cube['xyz']; w,h,d=cube['size']

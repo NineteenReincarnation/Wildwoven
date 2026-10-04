@@ -13,15 +13,21 @@ returns all feet to neutral. Juveniles use shorter legs and smaller steps.
 
 ## Other states
 
-- Idle: small breathing and slow face drift; no foot shuffling.
+- Idle: small breathing and slow body drift; no foot shuffling.
 - Rest: body lowered and four legs laid almost flat, with breathing.
 - Head carry: belly meets the mounting surface; legs spread, with no walk/breath loop.
 - Jump: front and hind legs extend in opposite directions; body pitch follows vertical speed.
-- Berry forage: an additional upward face/body bias during the existing high jump.
-- Eat: small repeated face dips while the entity eating flag is active.
+- Look: the whole model turns slightly; the integrated face never rotates independently.
+- Berry forage: an additional upward body bias during the existing high jump.
+- Eat: small repeated body dips while the entity eating flag is active.
 - Panic: faster vanilla navigation, using the walking cycle; obstacle jumps remain supported.
 
 Every render setup resets the baked pose, preventing accumulated offsets between states.
+The face and forehead stay rigid relative to the torso in every state. Independently
+rotating the former thin face slab intersected it with the shell and exposed triangular
+patches from elevated camera angles. The face now replaces the front torso slice, and
+external moss/stalk surfaces avoid overlapping coplanar faces. Shared juvenile cube
+boundaries are rounded together during export so the cap and body still meet.
 
 ## Editable previews
 
@@ -35,6 +41,9 @@ lighting is an offline approximation. It produces an adult detail, contact sheet
 
 JUnit checks the actual Minecraft-baked meshes for diagonal pairing, neutral feet on
 stopping, no floor penetration over a full walk cycle, prone/carry ground contact and
-repeatable pose resets for adults and babies. Fabric and NeoForge must both build.
+repeatable pose resets for adults and babies. Additional regressions check rigid face
+attachment through look/eat/jump/rest/carry, matching face/torso boundaries, and absence
+of exposed overlapping coplanar surfaces on the native baked meshes.
+Fabric and NeoForge must both build.
 Game checks still needed: appearance in lush cave lighting, movement cadence, helmets,
 boats, minecarts and leashes. Offline renders and a successful build do not certify these.

@@ -11,6 +11,8 @@ buds do not describe the approved reference and have been superseded.
 ## Adult geometry and color
 
 - A broad cuboid body with an inset tan face; no separate projecting snout.
+- The face replaces the front body slice and remains rigid with the moss shell.
+  Look, eat and idle animation moves the body/model rather than turning a face slab.
 - A flat moss canopy with separately modeled forehead, side and rear clumps.
 - Forehead clumps have distinct depths and hanging edges; texture cannot replace them.
 - Exactly two deep brown square eyes, on the front face only.

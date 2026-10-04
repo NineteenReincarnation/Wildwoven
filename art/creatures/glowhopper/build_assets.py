@@ -37,24 +37,26 @@ def mesh(baby=False):
             cube['size'] = [q*k for q in cube['size']]
         return cubes
     part('body', None, [0, body_y, 0], scaled([
-        box('brown_green_body', [-5, -3.5, -5.5], [10, 7, 11], 'shell'),
+        # The face replaces the front slice; it must not overlap the shell's side/bottom faces.
+        box('brown_green_body', [-5, -3.5, -4.5], [10, 7, 10], 'shell'),
+        box('front_upper_moss_band', [-5, -3.5, -5.5], [10, 0.7, 1], 'moss_mid'),
         box('flat_moss_top', [-5, -4.15, -5.5], [10, 0.65, 11], 'moss_mid'),
-        box('top_left_patch', [-4.8, -4.12, -2], [3, 0.12, 3], 'moss_light'),
-        box('top_rear_patch', [0.2, -4.10, 1], [3.8, 0.10, 3.5], 'moss_dark'),
-        box('right_side_front_clump', [-6.2, -2.5, -4.6], [1.4, 2, 2.4], 'moss_light'),
-        box('left_side_front_clump', [4.8, -2.5, -4.6], [1.4, 2, 2.4], 'moss_light'),
+        box('top_left_patch', [-4.8, -4.27, -2], [3, 0.12, 3], 'moss_light'),
+        box('top_rear_patch', [0.2, -4.25, 1], [3.8, 0.10, 3.5], 'moss_dark'),
+        box('right_side_front_clump', [-6.2, -2.55, -4.6], [1.4, 2.05, 2.4], 'moss_light'),
+        box('left_side_front_clump', [4.8, -2.55, -4.6], [1.4, 2.05, 2.4], 'moss_light'),
         box('right_side_middle_clump', [-5.35, -3.2, -1.8], [0.55, 3.2, 3.5], 'moss_mid'),
         box('left_side_middle_clump', [4.8, -3.2, -1.8], [0.55, 3.2, 3.5], 'moss_mid'),
         box('right_side_rear_clump', [-6.0, -2.5, 2.7], [1.2, 2, 2.4], 'moss_dark'),
         box('left_side_rear_clump', [4.8, -2.5, 2.7], [1.2, 2, 2.4], 'moss_dark'),
-        box('back_left_moss', [-5, -3.6, 4.7], [3.2, 3.2, 1], 'moss_mid'),
+        box('back_left_moss', [-5.05, -3.6, 4.7], [3.25, 3.2, 1], 'moss_mid'),
         box('back_middle_moss', [-1.8, -3.8, 4.9], [3.5, 4, 0.8], 'moss_light'),
-        box('back_right_moss', [1.7, -3.5, 4.8], [3.3, 3, 0.9], 'moss_mid'),
+        box('back_right_moss', [1.7, -3.5, 4.8], [3.35, 3, 0.9], 'moss_mid'),
     ]))
     face_cubes = [
-        box('tan_face_block', [-5, -2.8, -2.05], [10, 6.3, 1.0], 'face'),
+        box('tan_face_block', [-5, -2.8, -2.05], [10, 6.3, 1.05], 'face'),
         box('outer_right_moss', [-5.25, -2.5, -2.28], [1.9, 2.5, 1.3], 'moss_mid'),
-        box('upper_right_moss', [-5, -4.2, -2.3], [1.8, 2.3, 1.25], 'moss_light'),
+        box('upper_right_moss', [-5.05, -4.2, -2.3], [1.85, 2.3, 1.25], 'moss_light'),
         box('inner_right_moss', [-3.2, -3.9, -2.2], [1.8, 2.6, 1.1], 'moss_dark'),
         box('middle_moss_block', [-1.4, -4.2, -2.32], [3.2, 2.9, 1.25], 'moss_light'),
         box('small_hanging_leaf', [-0.3, -1.3, -2.22], [0.7, 1.3, 0.7], 'moss_mid'),
@@ -69,8 +71,8 @@ def mesh(baby=False):
     part('head', 'body', [0,0,-3.5*k], scaled(face_cubes))
     part('lantern_stem', 'body', [0,-4.15*k,0], scaled([
         box('bottom_stem_cube', [-1,-2,-1], [2,2,2], 'stem'),
-        box('middle_stem_cube', [-0.5,-3.8,-1], [2,2,2], 'moss_mid'),
-        box('top_hook_cube', [1,-5.5,-1], [3,2,2], 'moss_light'),
+        box('middle_stem_cube', [-0.5,-3.8,-1.04], [2,2,2.08], 'moss_mid'),
+        box('top_hook_cube', [1,-5.5,-1.08], [3,2,2.16], 'moss_light'),
         box('hanging_top_lantern', [2.5,-3.5,-1], [2,2.2,2], 'berry'),
     ]))
     for side,x in [('right',-7),('left',5)]:
@@ -85,6 +87,15 @@ def mesh(baby=False):
         for end,z in [('front',-3.8),('hind',3.8)]:
             part(f'{side}_{end}_leg',None,[x*k,24-leg_height,z*k],[
                 box('square_brown_leg',[-1.3*k,0,-1.3*k],[2.6*k,leg_height,2.6*k],'leg')])
+    # Match the exact hundredth-unit values emitted to Java, also for juvenile seams.
+    for p in parts:
+        p['pivot'] = [round(q, 2) for q in p['pivot']]
+        for cube in p['cubes']:
+            # Round shared boundaries, not dimensions independently: scaled cap/face
+            # slices must still meet exactly after Java's hundredth-unit export.
+            end = [round(a+b, 2) for a,b in zip(cube['xyz'],cube['size'])]
+            cube['xyz'] = [round(q, 2) for q in cube['xyz']]
+            cube['size'] = [round(b-a, 2) for a,b in zip(cube['xyz'],end)]
     return parts
 
 
@@ -286,10 +297,10 @@ def blockbench(parts, image, baby):
                 for t, a in [(0,0), (0.2,angle), (0.6,angle), (0.8,0)]:
                     frames.append(dict(channel='rotation',time=t,interpolation='linear',
                                        data_points=[dict(x=str(a),y='0',z='0')],uuid=str(uuid.uuid4())))
-            elif clip == 'eat' and name == 'head':
+            elif clip == 'eat' and name == 'body':
                 for step in range(5):
                     frames.append(dict(channel='rotation',time=step*0.125,interpolation='linear',
-                                       data_points=[dict(x=str(math.degrees(0.12+(0.05 if step%2 else -0.05))),y='0',z='0')],uuid=str(uuid.uuid4())))
+                                       data_points=[dict(x=str(math.degrees(0.06+(0.03 if step%2 else -0.03))),y='0',z='0')],uuid=str(uuid.uuid4())))
             if frames:
                 for frame in frames:
                     frame['uuid']=stable_id(f'{baby}/{clip}/{name}/{frame["channel"]}/{frame["time"]}')
